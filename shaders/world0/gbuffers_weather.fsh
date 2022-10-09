@@ -5,11 +5,11 @@ varying vec4 texcoord;
 varying vec4 lmcoord;
 
 uniform sampler2D gtexture;
+varying vec2 normal;
 
+/* DRAWBUFFERS:02 */
 void main() {
-	
-/* DRAWBUFFERS:7 */
-	
 	vec4 tex = texture(gtexture, texcoord.xy)*color;
 	gl_FragData[0] = tex;
+	gl_FragData[1] = vec4(normal, 0.0, 1.0);
 }

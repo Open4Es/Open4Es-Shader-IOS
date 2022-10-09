@@ -6,7 +6,8 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferProjectionInverse;
 uniform vec3 fogColor;
 uniform vec3 skyColor;
-
+varying vec2 normal;
+ 
 varying vec4 starData; //rgb = star color, a = flag for weather or not this pixel is a star.
 
 float fogify(float x, float w) {
@@ -29,6 +30,7 @@ void main() {
 		color = calcSkyColor(normalize(pos.xyz));
 	}
 
-/* DRAWBUFFERS:0 */
+/* DRAWBUFFERS:02 */
 	gl_FragData[0] = vec4(color, 1.0); //gcolor
+	gl_FragData[1] = vec4(normal, 0.0, 1.0);
 }

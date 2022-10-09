@@ -1,4 +1,4 @@
-#version 120
+#version 130
 
 #include "/lib/lib.glsl"
 #define SHADOW_MAP_BIAS 0.85
@@ -11,6 +11,11 @@ uniform sampler2D gcolor;
 uniform sampler2D gnormal;
 uniform sampler2D shadow;
 uniform sampler2D depthtex0;
+uniform sampler2D depthtex1;
+uniform sampler2D shadowtex1;
+uniform sampler2D gtexture;
+uniform sampler2D colortex4;
+uniform sampler2D noisetex;
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;
 uniform float rainStrength;
@@ -22,9 +27,6 @@ varying vec2 lmcoord;
 varying vec2 texcoord;
 varying float extShadow;
 varying vec3 lightPosition;
-varying vec3 mySunColor;
-varying vec3 mySkyColor;
-varying vec4 positionInViewCoord;
 
 uniform vec3 cameraPosition;
 uniform vec3 fogColor;
@@ -56,49 +58,72 @@ vec2 rand2d(highp  vec2 coord)
     return vec2(x, y);
 }
 
+vec3 normalDecode(vec2 enc) {
+    vec4 nn = vec4(2.0 * enc - 1.0, 1.0, -1.0);
+    float l = dot(nn.xyz,-nn.xyw);
+    nn.z = l;
+    nn.xy *= sqrt(l);
+    return nn.xyz * 2.0 + vec3(0.0, 0.0, -1.0);
+}
+
 #ifdef ShadowMapping
-float shadowMapping(vec4 worldPosition, float dist) {
-    if(dist > 0.9) //distance
+float shadowMapping(vec4 worldPosition, float dist, vec3 normal, float alpha){
+    if(dist > 0.9)
         return extShadow;
     float shade = 0.0;
-    vec4 shadowposition = shadowModelView * worldPosition;
-    shadowposition = shadowProjection * shadowposition;
-    float distb = sqrt(shadowposition.x * shadowposition.x + shadowposition.y * shadowposition.y);
-    float distortFactor = (1.0 - SHADOW_MAP_BIAS) + distb * SHADOW_MAP_BIAS;
-    shadowposition.xy /= distortFactor;
-    shadowposition /= shadowposition.w;
-    shadowposition = shadowposition * 0.5 + 0.5;
-   
-    float shadowSamplesRadius = 0.001;
-
-    for(float i = 1.0; i <= ShadowSamples; i += 1.0)
+    float angle = dot(lightPosition, normal);
+    if(angle <= 0.1 && alpha > 0.99)
     {
+        shade = 1.0;
+    }
+    else
+    {
+        vec4 shadowposition = shadowModelView * worldPosition;
+        shadowposition = shadowProjection * shadowposition;
+        float distb = sqrt(shadowposition.x * shadowposition.x + shadowposition.y * shadowposition.y);
+        float distortFactor = (1.0 - SHADOW_MAP_BIAS) + distb * SHADOW_MAP_BIAS;
+        shadowposition.xy /= distortFactor;
+        shadowposition /= shadowposition.w;
+        shadowposition = shadowposition * 0.5 + 0.5;
+        float shadowSamplesRadius = 0.001;
+
+        for(float i = 1.0; i <= ShadowSamples; i += 1.0){
         vec2 sampleCoord = rand2d(shadowposition.xy * i) - 0.5;
         float shadowDepth = texture2D(shadow, shadowposition.st + sampleCoord * shadowSamplesRadius).z;
-        if(shadowDepth + 0.0005 < shadowposition.z ){
+        if(shadowDepth + 0.0003 < shadowposition.z ){
             shade += 1.0;
-        }
+        }if(angle < 0.2 && alpha > 0.99)
+            shade = max(shade, 1.0 - (angle - 0.1) * 10.0);}
+        shade /= ShadowSamples;
     }
-    shade /= ShadowSamples;
-    
     shade -= clamp((dist - 0.7) * 5.0, 0.0, 1.0);
-    shade = clamp(shade, 0.0, 1.0); 
+    shade = clamp(shade, 0.0, 1.0);
     return max(shade, extShadow);
 }
 #endif
+
 void main() {
+
 vec4 color = texture2D(gcolor, texcoord.st);
+vec3 normal = normalDecode(texture2D(gnormal, texcoord.st).rg);
 #ifdef ShadowMapping
 float indoor=smoothstep(.95,1.,lmcoord.y);
 float cave=smoothstep(.7,1.,lmcoord.y);
 float day=saturate(skyColor.r*2.);
 float sunset=saturate((fogColor.r-.1)-fogColor.b);
-float depth = texture2D(depthtex0, texcoord.st).x;
-vec4 viewPosition = gbufferProjectionInverse * vec4(texcoord.s * 2.0 - 1.0, texcoord.t * 2.0 - 1.0, 2.0 * depth - 1.0, 1.0f);
-viewPosition /= viewPosition.w;
-vec4 worldPosition = gbufferModelViewInverse * viewPosition;
-float dist = length(worldPosition.xyz) / far;
-float shade = shadowMapping(worldPosition, dist);
+
+float depth0 = texture2D(depthtex0, texcoord.st).x;
+vec4 viewPosition0 = gbufferProjectionInverse * vec4(texcoord.s * 2.0 - 1.0, texcoord.t * 2.0 - 1.0, 2.0 * depth0 - 1.0, 1.0f);
+viewPosition0 /= viewPosition0.w;
+vec4 worldPosition0 = gbufferModelViewInverse * viewPosition0;
+
+/*float depth1 = texture2D(depthtex1, texcoord.st).x;
+vec4 viewPosition1 = gbufferProjectionInverse * vec4(texcoord.s * 2.0 - 1.0, texcoord.t * 2.0 - 1.0, 2.0 * depth1 - 1.0, 1.0f);
+viewPosition1 /= viewPosition1.w;
+vec4 worldPosition1 = gbufferModelViewInverse * viewPosition1;*/
+
+float dist = length(worldPosition0.xyz) / far;
+float shade = shadowMapping(worldPosition0, dist, normal, color.a);
 if(12000<worldTime && worldTime<13000) {
 color.rgb *=(1.0 - shade *0.5*(1.0-rainStrength*0.8)*(1.0-lmcoord.x*0.4)); // dusk
 }
@@ -119,6 +144,5 @@ return;
 #endif
 /* DRAWBUFFERS:0 */
 gl_FragData[0] = color;
-
 
 }

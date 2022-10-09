@@ -1,4 +1,5 @@
 #version 130
+//#include "/lib/lib.glsl"
 #define lerp(x , y , a) x * (1.0 - a) + y * a //mix
 uniform vec3 cameraPosition;
 uniform mat4 gbufferModelView;
@@ -36,16 +37,16 @@ void main() {
     cPos = (gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex).xyz + cameraPosition;
     wPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * gl_Vertex)).xyz;
 
-/*highp float waterWave = 
-sin(noise(frameTimeCounter  + (cPos.xz + cPos.xy + cPos.xz + cPos.xx + cPos.yy + cPos.zz ) *0.2
-+ noise(frameTimeCounter  + (cPos.xz + cPos.xy + cPos.xz + cPos.xx + cPos.yy + cPos.zz)*0.2))) *2.0; //Water wave */
+    highp float waterWave = 
+    sin(frameTimeCounter + (cPos.x + cPos.z + cPos.x + cPos.z + cPos.y + cPos.z));
+    //+ (frameTimeCounter  + (cPos.x + cPos.z + cPos.x + cPos.z + cPos.y + cPos.z)*0.2)) *2.0; //Water wave */
 
-if(mc_Entity.x == 8.0 || mc_Entity.x == 9.0){
-waterFlag = 1.0;
+    if(mc_Entity.x == 8.0 || mc_Entity.x == 9.0){
+    waterFlag = 1.0;
 
- //gl_Position.y -= waterWave * 0.2; //Water height
- uv1 = gl_MultiTexCoord1.xy; //Torch level
-}
+    gl_Position.y += waterWave * 0.05; //Water height
+    uv1 = gl_MultiTexCoord1.xy; //Torch level
+    }
 
-//waterHeight = waterWave;
+    waterHeight = waterWave;
 }

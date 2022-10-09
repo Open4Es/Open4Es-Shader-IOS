@@ -11,10 +11,13 @@
 #define ChromaticAberrationQuality 1.0 //[1.0 2.0 4.0 8.0]
 
 uniform sampler2D gcolor;
+uniform sampler2D colortex4;
+uniform sampler2D depthtex0;
 uniform float rainStrength;
 uniform float aspectRatio;
 uniform int worldTime;
 varying vec2 texcoord;
+
  
 float A = 0.2;
 float B = 0.50;

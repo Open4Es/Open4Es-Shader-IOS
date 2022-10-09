@@ -1,8 +1,9 @@
 #version 130
 #define saturate(x) clamp(x,0.0,1.0)
-#define lightColor vec3(1.5, 0.42 , 0.045)
+#define lightColor vec3(1.5, 0.42 , 0.045) /*vec3(1.5,0.7,0.3)*1.2*/
 #define UnderWaterCaustics
 
+uniform sampler2D gcolor;
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform sampler2D noisetex;
@@ -29,14 +30,16 @@ varying float flag5;
 varying float flag6;
 varying float flag7;
 varying vec4 positionInViewCoord;
+varying vec2 normal;
 
 const int noiseTextureResolution = 256;
 
 float getCaustics(vec4 positionInWorldCoord) {
 
-    // wave
+   // wave
     float speed1 = float(worldTime) / 1920.0;
     vec3 coord1 = positionInWorldCoord.xyz / 128.0;
+    coord1.x *= 3;
     coord1.x += speed1;
     coord1.z += speed1 * 0.2;
     float noise1 = texture(noisetex, coord1.xz).x;
@@ -44,14 +47,16 @@ float getCaustics(vec4 positionInWorldCoord) {
     // mix
     float speed2 = float(worldTime) / 896.0;
     vec3 coord2 = positionInWorldCoord.xyz / 128.0;
+    coord2.x *= 0.5;
     coord2.x -= speed2 * 0.15 + noise1 * 0.05;  // wave
     coord2.z -= speed2 * 0.7 - noise1 * 0.05;
     float noise2 = texture(noisetex, coord2.xz).x;
 
-    return noise1 + noise2;;
+    return noise1 + noise2;
+
 }
 
-/* DRAWBUFFERS:0 */
+/* DRAWBUFFERS:02 */
 
 void main() {
 
@@ -108,4 +113,5 @@ if(flag7 >= 0.5){
     diffuse.rgb=mix(diffuse.rgb,(pow(skyColor,vec3(5.4))+fogColor)/vec3(2.),smoothstep(0.,far,length(wPos.zx))*rainStrength);
 
 	gl_FragData[0] = diffuse;
+    gl_FragData[1] = vec4(normal, 0.0, 1.0);
 }

@@ -32,6 +32,13 @@ varying float flag5;
 varying float flag6;
 varying float flag7;
 varying vec4 positionInViewCoord;
+varying vec2 normal;
+ 
+vec2 normalEncode(vec3 n) {
+    vec2 enc = normalize(n.xy) * (sqrt(-n.z*0.5+0.5));
+    enc = enc*0.5+0.5;
+    return enc;
+}
 
 void main(){
     positionInViewCoord = gl_ModelViewMatrix * gl_Vertex;
@@ -76,6 +83,7 @@ if(mc_Entity.x == 18.0 || mc_Entity.x == 106.0 || mc_Entity.x == 161.0 || mc_Ent
 	glcolor = gl_Color;
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
+    normal = normalEncode(gl_NormalMatrix * gl_Normal);
     uv0 = gl_MultiTexCoord0.xy; //Torch level
     uv1 = gl_MultiTexCoord1.xy; //Torch level
     wPos=pos.xyz;
