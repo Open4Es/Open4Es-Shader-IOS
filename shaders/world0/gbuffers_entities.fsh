@@ -2,13 +2,14 @@
 
 uniform sampler2D lightmap;
 uniform sampler2D gtexture;
+
 uniform vec4 entityColor;
 
+varying vec2 normal;
 varying vec2 lmcoord;
 varying vec2 texcoord;
 varying vec4 glcolor;
-varying vec2 normal;
- 
+
 /* DRAWBUFFERS:02 */
 void main() {
 	vec4 color = texture(gtexture, texcoord) * glcolor;

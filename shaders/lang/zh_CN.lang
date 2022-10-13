@@ -14,16 +14,12 @@ option.WavingLeaves=树叶晃动
 option.WavingLeavesSpeed=树叶晃动速度
 option.WaterWave=水体晃动
 option.UnderWaterCaustics=水下焦散
-option.Water_Red=红色
-option.Water_Green=绿色
-option.Water_Blue=红色
 
 screen.CREDIT=鸣谢
 screen.CREDIT.comment=Thanks for the jebbyk's code contribution https://github.com/Open4Es/Open4Es-Shader-IOS
 screen.INFO=信息
 screen.INFO.comment=Made by: §5@ENDERMANYK§r
 screen.WorldColor=全局颜色
-screen.WaterColor=水体颜色
 screen.PostProcessing=后期处理
 screen.ShadowSettings=阴影设置
 screen.WavingSettings=晃动设置

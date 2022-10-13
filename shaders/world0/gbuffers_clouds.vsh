@@ -2,14 +2,16 @@
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
+
 uniform vec3 sunPosition;
 uniform vec3 cameraPosition;
 
+varying vec2 normal;
 varying vec2 texcoord;
 varying vec3 cPos;
 varying vec3 wPos;
 varying vec4 glcolor;
-varying vec2 normal;
+
  
 vec2 normalEncode(vec3 n) {
     vec2 enc = normalize(n.xy) * (sqrt(-n.z*0.5+0.5));

@@ -1,17 +1,20 @@
 #version 130
 
 #define VANILLA_CLOUDS
+
 uniform sampler2D gtexture;
-uniform float far;
+
 uniform vec3 fogColor;
 uniform vec3 skyColor;
 
+uniform float far;
+
+varying vec2 normal;
 varying vec2 texcoord;
 varying vec3 cPos;
 varying vec3 wPos;
 varying vec4 glcolor;
-varying vec2 normal;
- 
+
 /* DRAWBUFFERS:02 */
 void main(){
     #ifdef VANILLA_CLOUDS

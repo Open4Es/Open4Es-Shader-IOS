@@ -1,9 +1,10 @@
 #version 130
 
 varying vec2 lmcoord;
+varying vec2 normal;
 varying vec2 texcoord;
 varying vec4 glcolor;
-varying vec2 normal;
+
  
 vec2 normalEncode(vec3 n) {
     vec2 enc = normalize(n.xy) * (sqrt(-n.z*0.5+0.5));

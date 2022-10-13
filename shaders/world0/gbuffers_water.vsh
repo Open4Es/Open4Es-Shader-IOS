@@ -37,16 +37,16 @@ void main() {
     cPos = (gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex).xyz + cameraPosition;
     wPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * gl_Vertex)).xyz;
 
-    highp float waterWave = 
+    /*highp float waterWave = 
     sin(frameTimeCounter + (cPos.x + cPos.z + cPos.x + cPos.z + cPos.y + cPos.z));
-    //+ (frameTimeCounter  + (cPos.x + cPos.z + cPos.x + cPos.z + cPos.y + cPos.z)*0.2)) *2.0; //Water wave */
+    + (frameTimeCounter  + (cPos.x + cPos.z + cPos.x + cPos.z + cPos.y + cPos.z)*0.2)) *2.0; //Water wave */
 
     if(mc_Entity.x == 8.0 || mc_Entity.x == 9.0){
     waterFlag = 1.0;
 
-    gl_Position.y += waterWave * 0.05; //Water height
+    //gl_Position.y += waterWave * 0.05; //Water height
     uv1 = gl_MultiTexCoord1.xy; //Torch level
     }
 
-    waterHeight = waterWave;
+    //waterHeight = waterWave;
 }

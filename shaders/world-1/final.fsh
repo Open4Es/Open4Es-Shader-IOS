@@ -1,10 +1,14 @@
 #version 120
 
-uniform sampler2D gcolor;
-varying vec4 texcoord;
-uniform float aspectRatio;
 //#define Bloom
 #define BloomQuality 1.0 //[1.0 2.0 3.0 4.0]
+
+uniform sampler2D gcolor;
+
+uniform float aspectRatio;
+
+varying vec4 texcoord;
+
 
 float rand(highp vec2 coord){
     return fract(sin(dot(coord.xy ,vec2(12.9898,78.233))) * 43758.5453);

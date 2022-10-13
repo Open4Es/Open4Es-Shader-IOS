@@ -23,6 +23,9 @@ varying vec4 glcolor;
 varying vec3 wPos;
 varying vec2 uv0;
 varying vec2 uv1;
+varying vec4 positionInViewCoord;
+varying vec2 normal;
+
 varying float isOre;
 varying float flag1;
 varying float flag2;
@@ -31,8 +34,7 @@ varying float flag4;
 varying float flag5;
 varying float flag6;
 varying float flag7;
-varying vec4 positionInViewCoord;
-varying vec2 normal;
+
  
 vec2 normalEncode(vec3 n) {
     vec2 enc = normalize(n.xy) * (sqrt(-n.z*0.5+0.5));

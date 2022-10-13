@@ -1,10 +1,10 @@
 #version 130
 
+uniform sampler2D gtexture;
+
 varying vec4 color;
 varying vec4 texcoord;
 varying vec4 lmcoord;
-
-uniform sampler2D gtexture;
 varying vec2 normal;
 
 /* DRAWBUFFERS:02 */

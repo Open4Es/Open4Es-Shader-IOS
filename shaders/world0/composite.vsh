@@ -1,9 +1,16 @@
 #version 120
- 
+
+#define SUNRISE 23200
+#define SUNSET 12800
+#define FADE_START 500
+#define FADE_END 250
+
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;
-uniform int worldTime;
 uniform vec3 cameraPosition;
+
+uniform int worldTime;
+
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
@@ -12,12 +19,9 @@ uniform mat4 gbufferProjectionInverse;
 varying vec2 lmcoord;
 varying vec2 texcoord;
 varying vec3 lightPosition;
+varying vec3 normal;
+
 varying float extShadow;
- 
-#define SUNRISE 23200
-#define SUNSET 12800
-#define FADE_START 500
-#define FADE_END 250
  
 void main() {
     vec4 position = gl_ModelViewMatrix * gl_Vertex;

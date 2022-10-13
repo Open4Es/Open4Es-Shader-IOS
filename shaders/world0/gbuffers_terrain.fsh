@@ -8,13 +8,15 @@ uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform sampler2D noisetex;
 uniform vec3 cameraPosition;
-uniform mat4 gbufferModelViewInverse;
-uniform int worldTime;
 uniform vec3 fogColor;
 uniform vec3 skyColor;
+uniform mat4 gbufferModelViewInverse;
+
+uniform int worldTime;
+uniform int isEyeInWater;
 uniform float far;
 uniform float rainStrength;
-uniform int isEyeInWater;
+
 
 varying vec2 lmcoord;
 varying vec2 texcoord;
@@ -44,15 +46,7 @@ float getCaustics(vec4 positionInWorldCoord) {
     coord1.z += speed1 * 0.2;
     float noise1 = texture(noisetex, coord1.xz).x;
 
-    // mix
-    float speed2 = float(worldTime) / 896.0;
-    vec3 coord2 = positionInWorldCoord.xyz / 128.0;
-    coord2.x *= 0.5;
-    coord2.x -= speed2 * 0.15 + noise1 * 0.05;  // wave
-    coord2.z -= speed2 * 0.7 - noise1 * 0.05;
-    float noise2 = texture(noisetex, coord2.xz).x;
-
-    return noise1 + noise2;
+    return noise1;
 
 }
 
@@ -74,38 +68,38 @@ void main() {
     float day=saturate(skyColor.r*2.);
     float sunset=saturate((fogColor.r-.1)-fogColor.b);
     if(flag1 >= 0.5){
- if(1.0 == smoothstep(0.2 , 0.6 , texture(gtexture, texcoord).b)){
-  diffuse.rgb += vec3(0.7 , 0.7 , 1.5) * texture(gtexture, texcoord).b;
- }
-}
-if(flag2 >= 0.5){
- if(texture(gtexture, texcoord).b < texture(gtexture, texcoord).r){
-  diffuse.rgb += vec3(1.5 , 0.4 , 0.4) * texture(gtexture, texcoord).r;
- }
-}
-if(flag3 >= 0.5){
- if(texture(gtexture, texcoord).r < texture(gtexture, texcoord).g){
-  diffuse.rgb += vec3(0.4 , 1.5 , 0.4) * texture(gtexture, texcoord).g;
- }
-}
-if(flag4 >= 0.5){
- if(0.8 < texture(gtexture, texcoord).r){
-  diffuse.rgb += vec3(1.5 , 1.5 , 0.4) * texture(gtexture, texcoord).r;
- }
-}
-if(flag5 >= 0.5){
- if(0.6 < texture(gtexture, texcoord).r){
-  diffuse.rgb += vec3(1.5 , 0.8 , 0.7) * texture(gtexture, texcoord).r;
- }
-}
-if(flag6 >= 0.5){
- if(0.4 > texture(gtexture, texcoord).b || 0.4 > texture(gtexture, texcoord).g){
-  diffuse.rgb += vec3(0.4 , 0.4 , 1.5) * texture(gtexture, texcoord).b;
- }
-}
-if(flag7 >= 0.5){
- diffuse.rgb +=  (texture(gtexture, texcoord).r * texture(gtexture, texcoord).g) + vec3(2.0 , 0.0 , 0.0);
-}
+        if(1.0 == smoothstep(0.2 , 0.6 , texture(gtexture, texcoord).b)){
+        diffuse.rgb += vec3(0.7 , 0.7 , 1.5) * texture(gtexture, texcoord).b;
+        }
+    }
+    if(flag2 >= 0.5){
+       if(texture(gtexture, texcoord).b < texture(gtexture, texcoord).r){
+       diffuse.rgb += vec3(1.5 , 0.4 , 0.4) * texture(gtexture, texcoord).r;
+       }
+    }
+    if(flag3 >= 0.5){
+       if(texture(gtexture, texcoord).r < texture(gtexture, texcoord).g){
+       diffuse.rgb += vec3(0.4 , 1.5 , 0.4) * texture(gtexture, texcoord).g;
+       }
+    }
+    if(flag4 >= 0.5){
+       if(0.8 < texture(gtexture, texcoord).r){
+       diffuse.rgb += vec3(1.5 , 1.5 , 0.4) * texture(gtexture, texcoord).r;
+       }
+    }
+    if(flag5 >= 0.5){
+      if(0.6 < texture(gtexture, texcoord).r){
+      diffuse.rgb += vec3(1.5 , 0.8 , 0.7) * texture(gtexture, texcoord).r;
+       }
+    }
+    if(flag6 >= 0.5){
+      if(0.4 > texture(gtexture, texcoord).b || 0.4 > texture(gtexture, texcoord).g){
+      diffuse.rgb += vec3(0.4 , 0.4 , 1.5) * texture(gtexture, texcoord).b;
+       }
+    }
+    if(flag7 >= 0.5){
+      diffuse.rgb +=  (texture(gtexture, texcoord).r * texture(gtexture, texcoord).g) + vec3(2.0 , 0.0 , 0.0);
+    }
     //lighting
     diffuse.rgb+=mix(lightColor*max(lmcoord.x-.5,0.),vec3(.0),(indoor*.5+day*1.5)*.5);
     diffuse.rgb+=mix(vec3(0.),vec3(.0,.0,1.8)*max(lmcoord.x-.67,0.),saturate(float(isEyeInWater)));

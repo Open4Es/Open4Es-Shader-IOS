@@ -13,9 +13,12 @@
 uniform sampler2D gcolor;
 uniform sampler2D colortex4;
 uniform sampler2D depthtex0;
+
 uniform float rainStrength;
 uniform float aspectRatio;
+
 uniform int worldTime;
+
 varying vec2 texcoord;
 
  
