@@ -9,17 +9,79 @@
 #define BloomQuality 1.0 //[1.0 2.0 3.0 4.0]
 //#define ChromaticAberration
 #define ChromaticAberrationQuality 1.0 //[1.0 2.0 4.0 8.0]
+#define Lensflare
+//#define MotionBlur
+
+#define MANHATTAN_DISTANCE(DELTA) abs(DELTA.x)+abs(DELTA.y)
+
+#define LENS_FLARE(COLOR, UV, LFPOS, LFSIZE, LFCOLOR) { \
+                vec2 delta = UV - LFPOS; delta.x *= aspectRatio; \
+                if(MANHATTAN_DISTANCE(delta) < LFSIZE * 2.0) { \
+                    float d = max(LFSIZE - sqrt(dot(delta, delta)), 0.0); \
+                    COLOR += LFCOLOR.rgb * LFCOLOR.a * smoothstep(0.0, LFSIZE, d) * sunVisibility;\
+                } }
+ 
+#define LF1SIZE 0.4
+#define LF2SIZE 0.6
+#define LF3SIZE 0.5
+#define LF4SIZE 0.7
+#define LF5SIZE 0.4
+#define LF6SIZE 0.5
+#define LF7SIZE 0.02
+#define LF8SIZE 0.01
+#define LF9SIZE 0.03
+#define LF10SIZE 0.05
+#define LF11SIZE 0.01
+#define LF12SIZE 0.1
+#define LF13SIZE 0.1
 
 uniform sampler2D gcolor;
-uniform sampler2D colortex4;
+uniform sampler2D gaux1;//colortex4
 uniform sampler2D depthtex0;
 
 uniform float rainStrength;
 uniform float aspectRatio;
 
+uniform mat4 gbufferProjection;
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferPreviousProjection;
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferPreviousModelView;
+
+uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+
 uniform int worldTime;
 
 varying vec2 texcoord;
+varying float sunVisibility;
+varying vec2 lf1Pos;
+varying vec2 lf2Pos;
+varying vec2 lf3Pos;
+varying vec2 lf4Pos;
+varying vec2 lf5Pos;
+varying vec2 lf6Pos; 
+varying vec2 lf7Pos;
+varying vec2 lf8Pos;
+varying vec2 lf9Pos;
+varying vec2 lf10Pos;
+varying vec2 lf11Pos;
+varying vec2 lf12Pos;
+varying vec2 lf13Pos;
+
+const vec4 LF1COLOR = vec4(1.0, 1.0, 0.9, 0.15);
+const vec4 LF2COLOR = vec4(0.9, 1.0, 0.7, 0.15);
+const vec4 LF3COLOR = vec4(1.0, 0.7, 0.0, 0.15);
+const vec4 LF4COLOR = vec4(0.9, 0.1, 0.0, 0.15);
+const vec4 LF5COLOR = vec4(0.2, 0.06, 0.6, 0.4);
+const vec4 LF6COLOR = vec4(0.4, 0.03, 1.0, 0.2);
+const vec4 LF7COLOR = vec4(0.4, 0.9, 0.9, 1.0);
+const vec4 LF8COLOR = vec4(0.4, 0.4, 1.0, 1.0);
+const vec4 LF9COLOR = vec4(0.3, 0.4, 1.0, 1.0);
+const vec4 LF10COLOR = vec4(1.5, 0.85, 0.45, 0.3);
+const vec4 LF11COLOR = vec4(1.3, 0.8, 0.4, 0.5);
+const vec4 LF12COLOR = vec4(1.3, 1.0, 1.0, 0.4);
+const vec4 LF13COLOR = vec4(1.0, 1.0, 1.0, 0.1);
 
  
 float A = 0.2;
@@ -33,6 +95,27 @@ float W = 13.134;
 vec3 uncharted2Tonemap(vec3 x) {
     return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
+
+#ifdef Lensflare
+vec3 lensFlare(vec3 color, vec2 uv) {
+    if(sunVisibility <= 0.0)
+        return color;
+    LENS_FLARE(color, uv, lf1Pos, LF1SIZE, LF1COLOR);
+    LENS_FLARE(color, uv, lf2Pos, LF2SIZE, LF2COLOR);
+    LENS_FLARE(color, uv, lf3Pos, LF3SIZE, LF3COLOR);
+    LENS_FLARE(color, uv, lf4Pos, LF4SIZE, LF4COLOR);
+    LENS_FLARE(color, uv, lf5Pos, LF5SIZE, LF5COLOR);
+    LENS_FLARE(color, uv, lf6Pos, LF6SIZE, LF6COLOR);
+    LENS_FLARE(color, uv, lf7Pos, LF7SIZE, LF7COLOR);
+    LENS_FLARE(color, uv, lf8Pos, LF8SIZE, LF8COLOR);
+    LENS_FLARE(color, uv, lf9Pos, LF9SIZE, LF9COLOR);
+    LENS_FLARE(color, uv, lf10Pos, LF10SIZE, LF10COLOR);
+    LENS_FLARE(color, uv, lf11Pos, LF11SIZE, LF11COLOR);
+    LENS_FLARE(color, uv, lf12Pos, LF12SIZE, LF12COLOR);
+    LENS_FLARE(color, uv, lf13Pos, LF13SIZE, LF13COLOR);
+    return color;
+}
+#endif
 
 float rand(highp vec2 coord){
     return fract(sin(dot(coord.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -105,14 +188,44 @@ void main() {
     vec3 color = texture2D(gcolor, texcoord.st).rgb;	
     #endif
 
+    #ifdef MotionBlur
+    float mat = texture2D(gaux1, texcoord.st).g;
+	float hand = float(mat > 0.75 && mat < 0.85);
+	float depth = texture2D(depthtex0, texcoord.st).x;
+	vec4 currentPosition = vec4(texcoord.x * 4.0 - 2.0, texcoord.y * 2.0 - 1.0, 2.0 * depth - 1.0, 1.0);
+	vec4 fragposition = gbufferProjectionInverse * currentPosition;
+	fragposition = gbufferModelViewInverse * fragposition;
+	fragposition /= fragposition.w;
+	vec4 previousPosition = fragposition;
+	previousPosition = gbufferPreviousModelView * previousPosition;
+	previousPosition = gbufferPreviousProjection * previousPosition;
+	previousPosition /= previousPosition.w;
+
+	vec2 velocity = (currentPosition - previousPosition).st * 0.015;
+	int samples = 1;	
+	vec2 coord = texcoord.st + velocity;
+	if (hand < 0.9) {
+	for (int i = 0; i < 12; ++i, coord += velocity) {
+	if (coord.s > 1.0 || coord.t > 1.0 || coord.s < 0.0 || coord.t < 0.0) break;
+	color += texture2D(gcolor, coord).rgb;
+	++samples;
+	}	
+	color = color/float(samples);
+	}
+    #endif
+
     color.r = (color.r*Red)+(color.b+color.g)*(-0.1);
     color.g = (color.g*Green)+(color.r+color.b)*(-0.1);
     color.b = (color.b*Blue)+(color.r+color.g)*(-0.1);
 
+    #ifdef Lensflare
+        color = lensFlare(color, texcoord.st);
+    #endif
+
     #ifdef Bloom
         color.rgb += bloom();
     #endif
-    
+ 
     color = pow(color, vec3(1.4));
     if(12000<worldTime && worldTime<13000) {
         color *= 15.0 * Brightness * 0.8 *(1.0-rainStrength*0.4); // dusk
