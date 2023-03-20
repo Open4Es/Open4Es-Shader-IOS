@@ -1,6 +1,6 @@
 #version 130
 
-#define VANILLA_CLOUDS
+//#define VANILLA_CLOUDS
 
 uniform sampler2D gtexture;
 

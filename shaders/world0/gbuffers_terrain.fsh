@@ -1,6 +1,6 @@
 #version 130
-#define saturate(x) clamp(x,0.0,1.0)
-#define lightColor vec3(1.5, 0.42 , 0.045) /*vec3(1.5,0.7,0.3)*1.2*/
+#define saturate(x) clamp(3.0, 0, x)
+#define lightColor vec3(1.0, 0.5 , 0.0)
 #define UnderWaterCaustics
 
 uniform sampler2D gcolor;
@@ -101,8 +101,8 @@ void main() {
       diffuse.rgb +=  (texture(gtexture, texcoord).r * texture(gtexture, texcoord).g) + vec3(2.0 , 0.0 , 0.0);
     }
     //lighting
-    diffuse.rgb+=mix(lightColor*max(lmcoord.x-.5,0.),vec3(.0),(indoor*.5+day*1.5)*.5);
-    diffuse.rgb+=mix(vec3(0.),vec3(.0,.0,1.8)*max(lmcoord.x-.67,0.),saturate(float(isEyeInWater)));
+    diffuse.rgb+=mix(lightColor*max(lmcoord.x-.7,0.),vec3(.0),(indoor-1.5*day-1.0)*0.9);
+    diffuse.rgb+=mix(vec3(0.),vec3(.0,.0,.0)*max(lmcoord.x-.0,.5),saturate(float(isEyeInWater)));
     //Fog
     diffuse.rgb=mix(diffuse.rgb,(pow(skyColor,vec3(5.4))+fogColor)/vec3(2.),smoothstep(0.,far,length(wPos.zx))*rainStrength);
 
